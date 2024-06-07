@@ -715,59 +715,59 @@ pub fn add_key(
 pub fn create_new_keyfile() -> eyre::Result<Keyfile> {
     println!("No keyfile found. Create a new one? Y/N");
     let answer = get_input_string()?;
-    if answer == "Y" {
-        //Enter a password to encrypt key.file
-        println!("Please enter a password (lenth > 8) to encrypt the keyfile: ");
+    match answer.to_lowercase().as_str() {
+        "y" => {
+            //Enter a password to encrypt key.file
+            println!("Please enter a password (lenth > 8) to encrypt the keyfile: ");
 
-        let mut password = String::new();
-        io::stdin()
-            .read_line(&mut password)
-            .expect("Failed to read line");
-        if password.len() < 8 {
-            panic!("Password too short!")
-        }
-        let mut file = File::create("key.file")?;
-        println!("Please choose name for new key: ");
-
-        //Ask for a name to be associated with the new key
-        let key_name = get_input_string()?;
-
-        //Ask if random key should be generate or key will be provided by user
-        println!("Create new random key (r) or manually enter a key (m). Key needs to be valid 32-long char-utf8");
-        let answer = get_input_string()?;
-        let mut key = String::new();
-        if answer == "r" {
-            let mut rng = thread_rng();
-            let key_rand: String = iter::repeat(())
-                .map(|()| rng.sample(Alphanumeric))
-                .map(char::from)
-                .take(32)
-                .collect();
-            key.push_str(&key_rand);
-        } else if answer == "m" {
-            println!("Please enter key. Must be valid 32-long char-utf8");
-            let answer = get_input_string()?;
-            // String is always valid utf8, len() still needs to be checked
-            if answer.len() == 32 {
-                key.push_str(&answer);
-            } else {
-                println!("Please provide a valid 32-long char-utf8")
+            let mut password = String::new();
+            io::stdin()
+                .read_line(&mut password)
+                .expect("Failed to read line");
+            if password.len() < 8 {
+                panic!("Password too short!")
             }
-        } else {
-            //to do
-            panic!();
+            let mut file = File::create("key.file")?;
+            println!("Please choose name for new key: ");
+
+            //Ask for a name to be associated with the new key
+            let key_name = get_input_string()?;
+
+            //Ask if random key should be generate or key will be provided by user
+            println!("Create new random key (r) or manually enter a key (m). Key needs to be valid 32-long char-utf8");
+            let answer = get_input_string()?;
+            let mut key = String::new();
+            if answer == "r" {
+                let mut rng = thread_rng();
+                let key_rand: String = iter::repeat(())
+                    .map(|()| rng.sample(Alphanumeric))
+                    .map(char::from)
+                    .take(32)
+                    .collect();
+                key.push_str(&key_rand);
+            } else if answer == "m" {
+                println!("Please enter key. Must be valid 32-long char-utf8");
+                let answer = get_input_string()?;
+                // String is always valid utf8, len() still needs to be checked
+                if answer.len() == 32 {
+                    key.push_str(&answer);
+                } else {
+                    println!("Please provide a valid 32-long char-utf8")
+                }
+            } else {
+                //to do
+                panic!();
+            }
+
+            let mut new_key_map = HashMap::new();
+
+            new_key_map.insert(key_name, key);
+            let encoded: Vec<u8> = encrypt_hashmap(new_key_map.clone(), &password)?;
+
+            file.write_all(&encoded)?;
+            Ok((password, new_key_map, true))
         }
-
-        let mut new_key_map = HashMap::new();
-
-        new_key_map.insert(key_name, key);
-        let encoded: Vec<u8> = encrypt_hashmap(new_key_map.clone(), &password)?;
-
-        file.write_all(&encoded)?;
-        Ok((password, new_key_map, true))
-    } else {
-        //TO DO
-        panic!()
+        _ => panic!(),
     }
 }
 
