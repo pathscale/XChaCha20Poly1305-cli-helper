@@ -715,7 +715,7 @@ pub fn add_key(
 }
 
 /// Creates a new keyfile. User can choose to create a random key or manually enter 32-long char-utf8 password in a keyfile. Key has to be valid utf8. Resturns result (password, keyfile and bool (true if new keyfile way created)).
-pub fn create_new_keyfile() -> eyre::Result<Keyfile> {
+pub fn create_new_keyfile_interactive() -> eyre::Result<Keyfile> {
     println!("No keyfile found. Create a new one? Y/N");
     let answer = get_input_string()?;
     match answer.to_lowercase().as_str() {
@@ -774,6 +774,29 @@ pub fn create_new_keyfile() -> eyre::Result<Keyfile> {
     }
 }
 
+/// Creates a new keyfile. User can choose to create a random key or manually enter 32-long char-utf8 password in a keyfile. Key has to be valid utf8. Resturns result (password, keyfile and bool (true if new keyfile way created)).
+pub fn create_new_keyfile(
+    keyname: String,
+    password: String,
+    path: &Path,
+) -> eyre::Result<Keyfile> {
+    let mut file = File::create(path)?;
+    // create random key
+    let mut key = String::new();
+    let mut rng = thread_rng();
+    let key_rand: String = iter::repeat(())
+        .map(|()| rng.sample(Alphanumeric))
+        .map(char::from)
+        .take(32)
+        .collect();
+    key.push_str(&key_rand);
+    let mut new_key_map = HashMap::new();
+    new_key_map.insert(keyname, key);
+    let encoded: Vec<u8> = encrypt_hashmap(new_key_map.clone(), &password)?;
+    file.write_all(&encoded)?;
+    Ok((password, new_key_map, true))
+}
+
 pub fn chacha_key_from_password(password: String) -> XChaCha20Poly1305 {
     let password = blake3::hash(password.trim().as_bytes());
     let key = Key::from_slice(password.as_bytes());
@@ -813,7 +836,7 @@ pub fn parse_key(
     keyname: String,
 ) -> eyre::Result<String> {
     let (_, keymap, _) = parse_keyfile(key_file_content, password)?;
-    match keymap.get(&keyname){
+    match keymap.get(&keyname) {
         Some(key) => Ok(key.clone()),
         None => eyre::bail!("could not find a key with keyname:{keyname}"),
     }

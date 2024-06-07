@@ -112,9 +112,9 @@
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine;
 use chacha_poly::{
-    add_key, choose_hashing_function, create_new_keyfile, decrypt_file_procedual, encrypt_chacha,
-    encrypt_file_procedual, get_input_string, parse_key, read_file_as_vec_u8,
-    read_keyfile_interactive, remove_key, save_file,
+    add_key, choose_hashing_function, create_new_keyfile, create_new_keyfile_interactive,
+    decrypt_file_procedual, encrypt_chacha, encrypt_file_procedual, get_input_string, parse_key,
+    read_file_as_vec_u8, read_keyfile_interactive, remove_key, save_file,
 };
 use clap::Parser;
 use std::path::{Path, PathBuf};
@@ -160,19 +160,23 @@ fn main() -> eyre::Result<()> {
             let Ok(input_plaintext) = read_file_as_vec_u8(&input_file) else {
                 eyre::bail!("failed reading input file");
             };
-            let keyfile_plaintext = match read_file_as_vec_u8(&enc_key_file) {
-                Ok(keyfile_plaintext) => keyfile_plaintext,
-                Err(e) => {
-                    println!("failed opening key, {e}");
-                    println!("generating new key");
-                    generate_new_key(args.keyname.clone(), args.password.clone(), &enc_key_file)?;
-                    println!("generated new key");
-                    read_file_as_vec_u8(&enc_key_file)?
+            let enc_key = match read_file_as_vec_u8(&enc_key_file) {
+                Ok(keyfile_plaintext) => {
+                    parse_key(keyfile_plaintext, args.password.clone(), args.keyname)?
+                }
+                // generate new key
+                Err(_) => {
+                    println!("could not open keyfile");
+                    create_new_keyfile(args.keyname.clone(), args.password.clone(), &enc_key_file)?;
+                    let keyfile_text = read_file_as_vec_u8(&enc_key_file)?;
+                    let new_enc_key = parse_key(keyfile_text, args.password.clone(), args.keyname)?;
+                    println!(
+                        "generated new encryption key: {new_enc_key:?} in {}",
+                        enc_key_file.display()
+                    );
+                    new_enc_key
                 }
             };
-            let enc_key = parse_key(keyfile_plaintext, args.password.clone(), args.keyname)?;
-            println!("encryption key: {enc_key:?}");
-
             // encrypt the input file into output file
             let encrypted = encrypt_chacha(&input_plaintext, &enc_key)?;
             let encrypted = BASE64_STANDARD.encode(encrypted);
@@ -182,10 +186,6 @@ fn main() -> eyre::Result<()> {
         (None, _, _) => println!("please provide input"),
     };
     Ok(())
-}
-
-fn generate_new_key(key: String, password: String, path: &Path) -> eyre::Result<()> {
-    unimplemented!("convert from selection 1")
 }
 
 fn menu_selection() -> eyre::Result<()> {
@@ -217,7 +217,7 @@ fn menu_selection() -> eyre::Result<()> {
         //Check if there is a key.file in the directory
         let (password, keymap_plaintext, new) = if !Path::new("./key.file").exists() {
             //No key.file found. Ask if a new one should be created.
-            create_new_keyfile().expect("error")
+            create_new_keyfile_interactive().expect("error")
         } else {
             //key.file found. Reading and decrypting content
             read_keyfile_interactive().expect("error")
