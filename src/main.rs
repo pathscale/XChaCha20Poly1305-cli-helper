@@ -111,54 +111,47 @@
 
 use chacha_poly::{
     add_key, choose_hashing_function, create_new_keyfile, decrypt_file_procedual,
-    encrypt_file_procedual, get_blake3_hash, get_input_string, get_sha2_256_hash,
-    get_sha2_512_hash, get_sha3_256_hash, get_sha3_512_hash, read_file, read_keyfile, remove_key,
+    encrypt_file_procedual, encrypt_wallet, get_input_string, read_keyfile, remove_key,
 };
-
-use std::env;
+use clap::Parser;
 use std::path::{Path, PathBuf};
 use std::process::exit;
+use std::str::FromStr;
+
+/// Program description goes here
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// First parameter description
+    #[arg(short, long, alias = "input")]
+    input_file: Option<PathBuf>,
+    /// Second parameter description
+    #[arg(short, long, alias = "output")]
+    output_file: Option<PathBuf>,
+    /// Optional flag
+    #[arg(short, long, alias = "enc")]
+    enc_key_file: Option<PathBuf>,
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = env::args().collect();
-    //enable use of hashing functions via command line
-    if args.len() >= 2 {
-        let path = PathBuf::from(&args[2]);
-        if path.is_file() {
-            if &args[1] == "hash" {
-                println!("Calculating Blake3 Hash for {:?}", &path);
-                let hash = get_blake3_hash(read_file(&path)?)?;
-                println!("Hash: {:?}", hash);
-            } else if &args[1] == "hash_sha2_256" {
-                println!("Calculating SHA2-256 Hash for {:?}", &path);
-                let hash = get_sha2_256_hash(read_file(&path)?)?;
-                println!("Hash: {:?}", hash);
-            } else if &args[1] == "hash_sha2_512" {
-                println!("Calculating SHA2-512 Hash for {:?}", &path);
-                let hash = get_sha2_512_hash(read_file(&path)?)?;
-                println!("Hash: {:?}", hash);
-            } else if &args[1] == "hash_sha3_256" {
-                println!("Calculating SHA3-256 Hash for {:?}", &path);
-                let hash = get_sha3_256_hash(read_file(&path)?)?;
-                println!("Hash: {:?}", hash);
-            } else if &args[1] == "hash_sha3_512" {
-                println!("Calculating SHA3-512 Hash for {:?}", &path);
-                let hash = get_sha3_512_hash(read_file(&path)?)?;
-                println!("Hash: {:?}", hash);
-            } else {
-                println!("Please enter valid hashing function (see docs)")
-            }
-        } else {
-            println!("Please enter a valid filename")
-        }
-    } else {
-        loop {
+    let args = Args::parse();
+    match (args.input_file, args.output_file, args.enc_key_file) {
+        (None, None, None) => loop {
             if let Err(e) = menu_selection() {
                 println!("error: {e}");
             }
+        },
+        (None, _, _) => println!("please provide input"),
+        (Some(input_file), output_file_opt, enc_key_file_opt) => {
+            let default_output_file = PathBuf::from(format!("{:?}.crpt", input_file.display()));
+            let default_enc_key_file = PathBuf::from_str("key.file")?;
+            let output_file = output_file_opt.unwrap_or(default_output_file);
+            let enc_key_file = enc_key_file_opt.unwrap_or(default_enc_key_file);
+            if let Err(e) = encrypt_wallet(input_file, output_file, enc_key_file) {
+                println!("error: {e}");
+            }
         }
-    }
-
+    };
     Ok(())
 }
 

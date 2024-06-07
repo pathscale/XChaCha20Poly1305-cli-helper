@@ -852,6 +852,17 @@ pub fn encrypt_hashmap(
     Ok(encoded)
 }
 
+pub fn encrypt_wallet(
+    input_file: PathBuf,
+    output_file: PathBuf,
+    enc_key_file: PathBuf,
+) -> eyre::Result<()> {
+    println!("{input_file:?}");
+    println!("{output_file:?}");
+    println!("{enc_key_file:?}");
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -880,7 +891,7 @@ mod tests {
     fn test_encryt_decrypt_chacha() {
         let text = b"This a test";
         let key: &str = "an example very very secret key.";
-        let ciphertext = encrypt_chacha(text, key).unwrap();
+        let ciphertext = encrypt_chacha_poly(text, key).unwrap();
         assert_ne!(&ciphertext, &text);
         let plaintext = decrypt_chacha(&ciphertext, key).unwrap();
         assert_eq!(format!("{:?}", text), format!("{:?}", plaintext));
@@ -900,11 +911,11 @@ mod tests {
                 .take(32)
                 .collect();
             let content: Vec<u8> = (0..100).map(|_| rng.sample(&range)).collect();
-            let ciphertext1 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext2 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext3 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext4 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext5 = encrypt_chacha(&content, &key).unwrap();
+            let ciphertext1 = encrypt_chacha_poly(&content, &key).unwrap();
+            let ciphertext2 = encrypt_chacha_poly(&content, &key).unwrap();
+            let ciphertext3 = encrypt_chacha_poly(&content, &key).unwrap();
+            let ciphertext4 = encrypt_chacha_poly(&content, &key).unwrap();
+            let ciphertext5 = encrypt_chacha_poly(&content, &key).unwrap();
             assert_ne!(&ciphertext1, &ciphertext2);
             assert_ne!(&ciphertext1, &ciphertext3);
             assert_ne!(&ciphertext1, &ciphertext4);
@@ -1069,7 +1080,7 @@ mod tests {
                 .collect();
 
             let content: Vec<u8> = (0..100).map(|_| rng.sample(&range)).collect();
-            let ciphertext = encrypt_chacha(&content, &key).unwrap();
+            let ciphertext = encrypt_chacha_poly(&content, &key).unwrap();
             assert_ne!(&ciphertext, &content);
             let plaintext = decrypt_chacha(&ciphertext, &key).unwrap();
             assert_eq!(format!("{:?}", content), format!("{:?}", plaintext));
@@ -1104,8 +1115,8 @@ mod tests {
     fn test_example() {
         let text = b"This a test"; //Text to encrypt
         let key: &str = "an example very very secret key."; //Key will normally be chosen from keymap and provided to the encrypt_chacha() function
-        let ciphertext = encrypt_chacha(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
-                                                             //let ciphertext = encrypt_chacha(read_file(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
+        let ciphertext = encrypt_chacha_poly(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
+                                                                  //let ciphertext = encrypt_chacha(read_file(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
         assert_ne!(&ciphertext, &text); //Check that plaintext != ciphertext
         let plaintext = decrypt_chacha(&ciphertext, key).unwrap(); //Decrypt ciphertext to plaintext
         assert_eq!(format!("{:?}", text), format!("{:?}", plaintext)); //Check that text == plaintext
@@ -1116,7 +1127,7 @@ mod tests {
     fn test_chacha_wrong_key_panic() {
         let text = b"This a another test"; //Text to encrypt
         let key: &str = "an example very very secret key."; //Key will normally be chosen from keymap and provided to the encrypt_chacha() function
-        let ciphertext = encrypt_chacha(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
+        let ciphertext = encrypt_chacha_poly(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
 
         assert_ne!(&ciphertext, &text); //Check that plaintext != ciphertext
         let key: &str = "an example very very secret key!"; //The ! should result in decryption panic

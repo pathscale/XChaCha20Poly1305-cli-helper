@@ -30,6 +30,8 @@ sha2 = "0.10.8"
 sha3 = "0.10.8"
 base64 = "0.22.0"
 eyre = "0.6.8"
+clap = { version = "4.0", features = ["derive"] }
+
 
 [package.metadata.deb]
 maintainer = "inolvent"
