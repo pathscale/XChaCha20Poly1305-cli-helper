@@ -21,7 +21,7 @@ path = "src/main.rs"
 
 [dependencies]
 aes-gcm-siv = "0.11.1"
-chacha20poly1305 = "0.10.1" 
+chacha20poly1305 = "0.10.1"
 rand = "0.8.5"
 serde = { version = "1.0.197", features = ["derive"] }
 bincode = "1.3.3"
@@ -30,3 +30,12 @@ sha2 = "0.10.8"
 sha3 = "0.10.8"
 base64 = "0.22.0"
 eyre = "0.6.8"
+
+[package.metadata.deb]
+maintainer = ""
+copyright = ""
+# maintainer-scripts = "../../scripts/debian"
+assets = [
+    # binary (read execute)
+    ["target/release/chacha_poly_cli", "/usr/local/bin", "755"],
+]
