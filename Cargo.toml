@@ -1,0 +1,29 @@
+[package]
+name = "enc_file"
+version = "0.4.10"
+edition = "2021"
+readme = "README.md"
+keywords = ["encryption", "command-line", "chacha20poly1305", "aes-gcm", "blake3"]
+categories = ["command-line-utilities", "cryptography", "encoding", "filesystem"]
+
+[lib]
+name = "enc_file"
+path = "src/lib.rs"
+
+[[bin]]
+name = "enc_file"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aes-gcm-siv = "0.11.1"
+chacha20poly1305 = "0.10.1" 
+rand = "0.8.5"
+serde = { version = "1.0.197", features = ["derive"] }
+bincode = "1.3.3"
+blake3 = { version = "1.5.1", features = ["rayon"] }
+sha2 = "0.10.8"
+sha3 = "0.10.8"
+base64 = "0.22.0"
+eyre = "0.6.8"
