@@ -23,20 +23,22 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
 
-  clippy_check:
-    runs-on: ubuntu-latest
+  # write access missing
 
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: write
+  # clippy_check:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
+  #   permissions:
+  #     contents: write
+  #     pull-requests: write
+  #     repository-projects: write
 
-      - run: rustup component add clippy
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+  #     - run: rustup component add clippy
+
+  #     - uses: actions-rs/clippy-check@v1
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         args: --all-features
