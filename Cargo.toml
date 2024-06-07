@@ -32,10 +32,10 @@ base64 = "0.22.0"
 eyre = "0.6.8"
 
 [package.metadata.deb]
-maintainer = ""
+maintainer = "inolvent"
 copyright = ""
 # maintainer-scripts = "../../scripts/debian"
 assets = [
     # binary (read execute)
-    ["target/release/chacha_poly_cli", "/usr/local/bin", "755"],
+    ["target/release/chacha_poly_cli", "/usr/local/bin/chacha-poly-cli", "755"],
 ]
