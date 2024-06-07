@@ -18,7 +18,7 @@
 //! # Examples
 //!
 //! ```
-//! use enc_file::{encrypt_chacha, decrypt_chacha, read_file};
+//! use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file};
 //!
 //! //Plaintext to encrypt
 //! let text = b"This a test";
@@ -41,7 +41,7 @@
 //! ```
 //!
 //! ```
-//!use enc_file::{get_blake3_hash};
+//!use chacha_poly::{get_blake3_hash};
 //!
 //!let test = b"Calculating the BLAKE3 Hash of this text";
 //!let test_vec = test.to_vec(); //Convert text to Vec<u8>
@@ -76,7 +76,7 @@
 //
 // Encrypt/decrypt using XChaCha20Poly1305 and random nonce
 // ```
-// use enc_file::{encrypt_chacha, decrypt_chacha, read_file};
+// use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file};
 //
 // //Plaintext to encrypt
 // let text = b"This a test";
@@ -99,7 +99,7 @@
 //
 // Calculate Blake3 Hash
 // ```
-// use enc_file::{get_blake3_hash};
+// use chacha_poly::{get_blake3_hash};
 //
 // let test = b"Calculating the BLAKE3 Hash of this text";
 // let test_vec = test.to_vec(); //Convert text to Vec<u8>
@@ -140,7 +140,7 @@ type Keyfile = (String, HashMap<String, String>, bool);
 /// # Examples
 ///
 /// ```
-/// use enc_file::{encrypt_chacha, decrypt_chacha};
+/// use chacha_poly::{encrypt_chacha, decrypt_chacha};
 ///
 /// let text = b"This a test";
 /// let key: &str = "an example very very secret key.";
@@ -180,7 +180,7 @@ pub fn encrypt_chacha(cleartext: &[u8], key: &str) -> eyre::Result<Vec<u8>> {
 /// # Examples
 ///
 /// ```
-/// use enc_file::{encrypt_chacha, decrypt_chacha};
+/// use chacha_poly::{encrypt_chacha, decrypt_chacha};
 ///
 /// let text = b"This a test";
 /// let key: &str = "an example very very secret key.";
@@ -217,7 +217,7 @@ pub fn decrypt_chacha(enc: &[u8], key: &str) -> eyre::Result<Vec<u8>> {
 /// # Examples
 ///
 /// ```
-/// use enc_file::{encrypt_aes, decrypt_aes};
+/// use chacha_poly::{encrypt_aes, decrypt_aes};
 ///
 /// let text = b"This a test";
 /// let key: &str = "an example very very secret key.";
@@ -257,7 +257,7 @@ pub fn encrypt_aes(cleartext: &[u8], key: &str) -> eyre::Result<Vec<u8>> {
 /// # Examples
 ///
 /// ```
-/// use enc_file::{encrypt_aes, decrypt_aes};
+/// use chacha_poly::{encrypt_aes, decrypt_aes};
 ///
 /// let text = b"This a test";
 /// let key: &str = "an example very very secret key.";
@@ -300,7 +300,7 @@ pub fn get_input_string() -> eyre::Result<String> {
 /// # Examples
 ///
 /// ```
-/// use enc_file::{read_file, save_file};
+/// use chacha_poly::{read_file, save_file};
 /// use std::path::PathBuf;
 /// use std::fs::remove_file;
 ///
@@ -326,7 +326,7 @@ pub fn read_file(path: &Path) -> eyre::Result<Vec<u8>> {
 /// # Examples
 ///
 /// ```
-/// use enc_file::save_file;
+/// use chacha_poly::save_file;
 /// use std::path::PathBuf;
 /// use std::fs::remove_file;
 ///
@@ -341,12 +341,12 @@ pub fn save_file(data: Vec<u8>, path: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Get BLAKE3 Hash from data. File needs to be read as Vec<u8> (e.g. use enc_file::read_file()). Returns result.
+/// Get BLAKE3 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
 /// Uses multithreading if len(Vec<u8>) > 128.000
 /// # Examples
 ///
 /// ```
-/// use enc_file::{get_blake3_hash, read_file};
+/// use chacha_poly::{get_blake3_hash, read_file};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the BLAKE3 Hash of this text".to_vec();
@@ -372,11 +372,11 @@ pub fn get_blake3_hash(data: Vec<u8>) -> eyre::Result<blake3::Hash> {
     Ok(hash)
 }
 
-/// Get SHA2-256 Hash from data. File needs to be read as Vec<u8> (e.g. use enc_file::read_file()). Returns result.
+/// Get SHA2-256 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use enc_file::{get_sha2_256_hash, read_file};
+/// use chacha_poly::{get_sha2_256_hash, read_file};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the SHA2-256 Hash of this text".to_vec();
@@ -403,11 +403,11 @@ pub fn get_sha2_256_hash(data: Vec<u8>) -> eyre::Result<String> {
     Ok(format!("{:?}", hash))
 }
 
-/// Get SHA2-512 Hash from data. File needs to be read as Vec<u8> (e.g. use enc_file::read_file()). Returns result.
+/// Get SHA2-512 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use enc_file::{get_sha2_512_hash, read_file};
+/// use chacha_poly::{get_sha2_512_hash, read_file};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the the SHA2-512 Hash of this text".to_vec();
@@ -434,11 +434,11 @@ pub fn get_sha2_512_hash(data: Vec<u8>) -> eyre::Result<String> {
     Ok(format!("{:?}", hash))
 }
 
-/// Get SHA3-256 Hash from data. File needs to be read as Vec<u8> (e.g. use enc_file::read_file()). Returns result.
+/// Get SHA3-256 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use enc_file::{get_sha3_256_hash, read_file};
+/// use chacha_poly::{get_sha3_256_hash, read_file};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the the SHA3-256 Hash of this text".to_vec();
@@ -465,11 +465,11 @@ pub fn get_sha3_256_hash(data: Vec<u8>) -> eyre::Result<String> {
     Ok(format!("{:?}", hash))
 }
 
-/// Get SHA3-512 Hash from data. File needs to be read as Vec<u8> (e.g. use enc_file::read_file()). Returns result.
+/// Get SHA3-512 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use enc_file::{get_sha3_512_hash, read_file};
+/// use chacha_poly::{get_sha3_512_hash, read_file};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the the SHA3-512 Hash of this text".to_vec();
@@ -586,7 +586,7 @@ mod test_interim {
         let store = "hello world";
         let decoded: String = BASE64_STANDARD.encode(store);
         let path = Path::new("text");
-        save_file(decoded.into(), &path);
+        let _ = save_file(decoded.into(), &path);
     }
 }
 
@@ -806,7 +806,7 @@ pub fn read_keyfile() -> eyre::Result<Keyfile> {
 /// use std::collections::HashMap;
 /// use aes_gcm_siv::aead::{Aead};
 /// use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
-/// use enc_file::{encrypt_hashmap};
+/// use chacha_poly::{encrypt_hashmap};
 /// use serde::{Deserialize, Serialize};
 ///
 /// //create example keymap. Keymap constits of key-name and actual-key. Attention: Valid keys for cryptography needs to be 32-chars utf8!

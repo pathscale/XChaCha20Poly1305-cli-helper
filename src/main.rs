@@ -17,7 +17,7 @@
 //! # Examples
 //!
 //! ```
-//! use enc_file::{encrypt_chacha, decrypt_chacha, read_file};
+//! use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file};
 //!
 //! //Plaintext to encrypt
 //! let text = b"This a test";
@@ -40,7 +40,7 @@
 //! ```
 //!
 //! ```
-//!use enc_file::{get_blake3_hash};
+//!use chacha_poly::{get_blake3_hash};
 //!
 //!let test = b"Calculating the BLAKE3 Hash of this text";
 //!let test_vec = test.to_vec(); //Convert text to Vec<u8>
@@ -77,7 +77,7 @@
 //
 // Encrypt/decrypt using XChaCha20Poly1305 and random nonce
 // ```
-// use enc_file::{encrypt_chacha, decrypt_chacha, read_file};
+// use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file};
 //
 // //Plaintext to encrypt
 // let text = b"This a test";
@@ -100,7 +100,7 @@
 //
 // Calculate Blake3 Hash
 // ```
-// use enc_file::{get_blake3_hash};
+// use chacha_poly::{get_blake3_hash};
 //
 // let test = b"Calculating the BLAKE3 Hash of this text";
 // let test_vec = test.to_vec(); //Convert text to Vec<u8>
