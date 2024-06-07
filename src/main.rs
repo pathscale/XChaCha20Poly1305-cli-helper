@@ -111,7 +111,8 @@
 
 use chacha_poly::{
     add_key, choose_hashing_function, create_new_keyfile, decrypt_file_procedual,
-    encrypt_file_procedual, encrypt_wallet, get_input_string, read_keyfile, remove_key,
+    encrypt_file_procedual, get_input_string, parse_key, read_file_as_vec_u8,
+    read_keyfile_interactive, remove_key,
 };
 use clap::Parser;
 use std::path::{Path, PathBuf};
@@ -131,28 +132,55 @@ struct Args {
     /// Optional flag
     #[arg(short, long, alias = "enc")]
     enc_key_file: Option<PathBuf>,
+    #[arg(short, long, alias = "pw", default_value = "password")]
+    password: String,
+    #[arg(short, long, default_value = "keyname")]
+    keyname: String,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> eyre::Result<()> {
     let args = Args::parse();
     match (args.input_file, args.output_file, args.enc_key_file) {
+        // interactive mode
         (None, None, None) => loop {
             if let Err(e) = menu_selection() {
                 println!("error: {e}");
             }
         },
-        (None, _, _) => println!("please provide input"),
+        // direct encrypt mode
         (Some(input_file), output_file_opt, enc_key_file_opt) => {
+            // gather file dir
             let default_output_file = PathBuf::from(format!("{:?}.crpt", input_file.display()));
             let default_enc_key_file = PathBuf::from_str("key.file")?;
             let output_file = output_file_opt.unwrap_or(default_output_file);
             let enc_key_file = enc_key_file_opt.unwrap_or(default_enc_key_file);
-            if let Err(e) = encrypt_wallet(input_file, output_file, enc_key_file) {
-                println!("error: {e}");
-            }
+            // get input and key
+            let Ok(input_plaintext) = read_file_as_vec_u8(&input_file) else {
+                eyre::bail!("failed reading input file");
+            };
+            let keyfile_plaintext = match read_file_as_vec_u8(&enc_key_file) {
+                Ok(keyfile_plaintext) => keyfile_plaintext,
+                Err(e) => {
+                    println!("failed opening key, {e}");
+                    println!("generating new key");
+                    generate_new_key(args.keyname.clone(), args.password.clone(), &enc_key_file)?;
+                    println!("generated new key");
+                    read_file_as_vec_u8(&enc_key_file)?
+                }
+            };
+            let enc_key = parse_key(keyfile_plaintext, args.password.clone(), args.keyname)?;
+            println!("encryption key: {enc_key:?}");
+
+            // encrypt the input file into output file
         }
+        // no input, invalid
+        (None, _, _) => println!("please provide input"),
     };
     Ok(())
+}
+
+fn generate_new_key(key: String, password: String, path: &Path) -> eyre::Result<()> {
+    unimplemented!("convert from selection 1")
 }
 
 fn menu_selection() -> eyre::Result<()> {
@@ -187,7 +215,7 @@ fn menu_selection() -> eyre::Result<()> {
             create_new_keyfile().expect("error")
         } else {
             //key.file found. Reading and decrypting content
-            read_keyfile().expect("error")
+            read_keyfile_interactive().expect("error")
         };
         match answer.as_str() {
             "1" => {
