@@ -61,11 +61,11 @@ jobs:
         done
 
     - name: Create Debian package
-      run: cargo deb --no-build --deb-version 1.0.${{ github.run_number }} --no-strip -p chacha_poly -o chacha_poly_1.0.${{ github.run_number }}_arm64.deb
+      run: cargo deb --no-build --deb-version 1.0.${{ github.run_number }} --no-strip -p chacha_poly -o ./target/debian/chacha_poly_1.0.${{ github.run_number }}_arm64.deb
       
     - name: List Deb files
       run: | 
-         find .
+         find ./target/debian/*.deb
 
     - name: Upload to bunny
       env: 
@@ -75,7 +75,7 @@ jobs:
           STORAGE_NAME: ${{ secrets.BUNNYCDN_STORAGE_NAME }}
       run: | 
           cd target/debian
-          curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./*.deb "https://storage.bunnycdn.com/$STORAGE_NAME/"
+          curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./target/debian/*.deb "https://storage.bunnycdn.com/$STORAGE_NAME/"
           curl -s --request POST --header "AccessKey: $ZONE_API_KEY" --header "Content-Type: application/json" --header "Accept: application/json" "https://bunnycdn.com/api/pullzone/$ZONE_ID/purgeCache" --data "{"id":"$ZONE_ID"}"
   
   build_amd64:
@@ -133,11 +133,11 @@ jobs:
         done
 
     - name: Create Debian package
-      run: cargo deb --no-build --deb-version 1.0.${{ github.run_number }} --no-strip -p chacha_poly -o chacha_poly_1.0.${{ github.run_number }}_amd64.deb
+      run: cargo deb --no-build --deb-version 1.0.${{ github.run_number }} --no-strip -p chacha_poly -o ./target/debian/chacha_poly_1.0.${{ github.run_number }}_amd64.deb
       
     - name: List deb files
       run: | 
-         find .
+         find ./target/debian/*.deb
 
     - name: Upload to bunny
       env: 
@@ -147,5 +147,5 @@ jobs:
           STORAGE_NAME: ${{ secrets.BUNNYCDN_STORAGE_NAME }}
       run: | 
           cd target/debian
-          curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./*.deb "https://storage.bunnycdn.com/$STORAGE_NAME/"
+          curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./target/debian/*.deb "https://storage.bunnycdn.com/$STORAGE_NAME/"
           curl -s --request POST --header "AccessKey: $ZONE_API_KEY" --header "Content-Type: application/json" --header "Accept: application/json" "https://bunnycdn.com/api/pullzone/$ZONE_ID/purgeCache" --data "{"id":"$ZONE_ID"}"
