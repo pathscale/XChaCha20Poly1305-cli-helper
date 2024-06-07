@@ -109,7 +109,7 @@
 // assert_eq!(hash1, hash2); //Make sure hash1 == hash2
 // ```
 
-use enc_file::{
+use chacha_poly::{
     add_key, choose_hashing_function, create_new_keyfile, decrypt_file_procedual,
     encrypt_file_procedual, get_blake3_hash, get_input_string, get_sha2_256_hash,
     get_sha2_512_hash, get_sha3_256_hash, get_sha3_512_hash, read_file, read_keyfile, remove_key,

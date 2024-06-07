@@ -1,17 +1,20 @@
 [package]
-name = "enc_file"
+name = "chacha_poly"
 version = "0.4.10"
 edition = "2021"
+description = ""
 readme = "README.md"
+license = ""
+authors = [""]
 keywords = ["encryption", "command-line", "chacha20poly1305", "aes-gcm", "blake3"]
 categories = ["command-line-utilities", "cryptography", "encoding", "filesystem"]
 
 [lib]
-name = "enc_file"
+name = "chacha_poly"
 path = "src/lib.rs"
 
 [[bin]]
-name = "enc_file"
+name = "chacha_poly_cli"
 path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
