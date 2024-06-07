@@ -1,8 +1,18 @@
 # enc_file (Modded from LazyEmpiricist's)
 
-Encrypt / decrypt files or calculate the HASH from the command line. Written in Rust without use of unsafe code. 
+Encrypt / decrypt files or calculate the HASH from the command line. Written in safe Rust
 
-Uses XChaCha20Poly1305 (https://docs.rs/chacha20poly1305) or AES-256-GCM-SIV (https://docs.rs/aes-gcm-siv) for encryption/decryption, bincode (https://docs.rs/bincode) for encoding and BLAKE3 (https://docs.rs/blake3), SHA2-256 / SHA2-512 (https://docs.rs/sha2) oder SHA3-256 / SHA3-512 (https://docs.rs/sha3) for hashing.
+Encryption:
+- XChaCha20Poly1305 (https://docs.rs/chacha20poly1305)
+- AES-256-GCM-SIV (https://docs.rs/aes-gcm-siv)
+
+Encoding:
+- bincode (https://docs.rs/bincode) for encoding 
+
+Hashing:
+- BLAKE3 (https://docs.rs/blake3)
+- SHA2-256 / SHA2-512 (https://docs.rs/sha2)
+- SHA3-256 / SHA3-512 (https://docs.rs/sha3)
 
 
 ## Usage:
@@ -22,18 +32,34 @@ Please enter the corresponding number to continue:
 
 ### Obtain ciphertext and enable trading
 #### Generate encrypted private key ciphertext
-make a file, `hyper.key`, to store the ETH wallet private key for encryption
+
+##### Store wallet private key in a file
+make a file `hyper.key` to store the ETH wallet private key for encryption
 ```
-code ./hyper.key
+nano hyper.key
 ```
-run the enc_file code
+##### Install the debian package
+start the program
 ```
-cargo run
+sudo dpkg -i chacha-poly_1.0.0_arm64.deb
 ```
-- select 1 to create encryption key, it prints the `encryption key` as below
+##### Generate the 
+start the program
+```
+chacha-poly-cli
+```
+select 1: create encryption key, it prints the `encryption key` as below
 ```
 Keys found in key.file:
 {"YOUR_KEY_NAME_HERE": "YOUR_ENCRYPTION_KEY_HERE"}
 ```
-- select 3 to encrypt the hypper.key content (wallet private key) and get `hyper.key.crpt`, which has the `ciphertext` as the content
-- select 8 to exit
+select 3: encrypt `hyper.key` (wallet private key) and get `hyper.key.crpt` with encrypted material in the content
+```
+nano hyper.key.crpt 
+```
+select 8: exit
+
+### Details
+package name: chacha-poly
+lib name: chacha-poly
+bin name: chacha-poly-cli
