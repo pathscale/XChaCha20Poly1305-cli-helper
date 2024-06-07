@@ -166,7 +166,7 @@ fn main() -> eyre::Result<()> {
                 }
                 // generate new key
                 Err(_) => {
-                    println!("could not open keyfile");
+                    println!("could not open {}", enc_key_file.display());
                     create_new_keyfile(args.keyname.clone(), args.password.clone(), &enc_key_file)?;
                     let keyfile_text = read_file_as_vec_u8(&enc_key_file)?;
                     let new_enc_key = parse_key(keyfile_text, args.password.clone(), args.keyname)?;
