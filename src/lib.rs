@@ -18,7 +18,7 @@
 //! # Examples
 //!
 //! ```
-//! use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file};
+//! use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file_as_vec_u8};
 //!
 //! //Plaintext to encrypt
 //! let text = b"This a test";
@@ -30,7 +30,7 @@
 //! //Encrypt text
 //! //Ciphertext stores the len() of encrypted content, the nonce and the actual ciphertext using bincode
 //! let ciphertext = encrypt_chacha(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
-//! //let ciphertext = encrypt_chacha(read_file(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
+//! //let ciphertext = encrypt_chacha(read_file_as_vec_u8(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
 //! //Check that plaintext != ciphertext
 //! assert_ne!(&ciphertext, &text);
 //!
@@ -76,7 +76,7 @@
 //
 // Encrypt/decrypt using XChaCha20Poly1305 and random nonce
 // ```
-// use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file};
+// use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file_as_vec_u8};
 //
 // //Plaintext to encrypt
 // let text = b"This a test";
@@ -87,7 +87,7 @@
 //
 // //Encrypt text
 // let ciphertext = encrypt_chacha(text_vec, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
-// //let ciphertext = encrypt_chacha(read_file(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
+// //let ciphertext = encrypt_chacha(read_file_as_vec_u8(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
 // //Check that plaintext != ciphertext
 // assert_ne!(&ciphertext, &text);
 //
@@ -300,7 +300,7 @@ pub fn get_input_string() -> eyre::Result<String> {
 /// # Examples
 ///
 /// ```
-/// use chacha_poly::{read_file, save_file};
+/// use chacha_poly::{read_file_as_vec_u8, save_file};
 /// use std::path::PathBuf;
 /// use std::fs::remove_file;
 ///
@@ -308,7 +308,7 @@ pub fn get_input_string() -> eyre::Result<String> {
 /// let path: PathBuf = PathBuf::from("test_abcdefg.filexyz");
 /// save_file(content.clone(), &path).unwrap();
 ///
-/// let content_read: Vec<u8> = read_file(&path).unwrap();
+/// let content_read: Vec<u8> = read_file_as_vec_u8(&path).unwrap();
 /// remove_file(&path).unwrap(); //remove file created for this test
 /// assert_eq!(content, content_read);
 /// ```
@@ -344,12 +344,12 @@ pub fn save_file(data: Vec<u8>, path: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Get BLAKE3 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
+/// Get BLAKE3 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file_as_vec_u8()). Returns result.
 /// Uses multithreading if len(Vec<u8>) > 128.000
 /// # Examples
 ///
 /// ```
-/// use chacha_poly::{get_blake3_hash, read_file};
+/// use chacha_poly::{get_blake3_hash, read_file_as_vec_u8};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the BLAKE3 Hash of this text".to_vec();
@@ -375,11 +375,11 @@ pub fn get_blake3_hash(data: Vec<u8>) -> eyre::Result<blake3::Hash> {
     Ok(hash)
 }
 
-/// Get SHA2-256 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
+/// Get SHA2-256 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file_as_vec_u8()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use chacha_poly::{get_sha2_256_hash, read_file};
+/// use chacha_poly::{get_sha2_256_hash, read_file_as_vec_u8};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the SHA2-256 Hash of this text".to_vec();
@@ -406,11 +406,11 @@ pub fn get_sha2_256_hash(data: Vec<u8>) -> eyre::Result<String> {
     Ok(format!("{:?}", hash))
 }
 
-/// Get SHA2-512 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
+/// Get SHA2-512 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file_as_vec_u8()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use chacha_poly::{get_sha2_512_hash, read_file};
+/// use chacha_poly::{get_sha2_512_hash, read_file_as_vec_u8};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the the SHA2-512 Hash of this text".to_vec();
@@ -437,11 +437,11 @@ pub fn get_sha2_512_hash(data: Vec<u8>) -> eyre::Result<String> {
     Ok(format!("{:?}", hash))
 }
 
-/// Get SHA3-256 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
+/// Get SHA3-256 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file_as_vec_u8()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use chacha_poly::{get_sha3_256_hash, read_file};
+/// use chacha_poly::{get_sha3_256_hash, read_file_as_vec_u8};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the the SHA3-256 Hash of this text".to_vec();
@@ -468,11 +468,11 @@ pub fn get_sha3_256_hash(data: Vec<u8>) -> eyre::Result<String> {
     Ok(format!("{:?}", hash))
 }
 
-/// Get SHA3-512 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file()). Returns result.
+/// Get SHA3-512 Hash from data. File needs to be read as Vec<u8> (e.g. use chacha_poly::read_file_as_vec_u8()). Returns result.
 /// # Examples
 ///
 /// ```
-/// use chacha_poly::{get_sha3_512_hash, read_file};
+/// use chacha_poly::{get_sha3_512_hash, read_file_as_vec_u8};
 ///
 /// //creating to different Vec<u8> to hash and compare
 /// let test = b"Calculating the the SHA3-512 Hash of this text".to_vec();
@@ -899,7 +899,7 @@ mod tests {
     use super::*;
     use std::fs::remove_file;
     #[test]
-    fn test_save_read_file() {
+    fn test_save_read_file_as_vec_u8() {
         let content: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         let path: PathBuf = PathBuf::from("test_abcdefg.file");
         save_file(content.clone(), &path).unwrap();
@@ -1147,7 +1147,7 @@ mod tests {
         let text = b"This a test"; //Text to encrypt
         let key: &str = "an example very very secret key."; //Key will normally be chosen from keymap and provided to the encrypt_chacha() function
         let ciphertext = encrypt_chacha(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
-                                                             //let ciphertext = encrypt_chacha(read_file(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
+                                                             //let ciphertext = encrypt_chacha(read_file_as_vec_u8(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
         assert_ne!(&ciphertext, &text); //Check that plaintext != ciphertext
         let plaintext = decrypt_chacha(&ciphertext, key).unwrap(); //Decrypt ciphertext to plaintext
         assert_eq!(format!("{:?}", text), format!("{:?}", plaintext)); //Check that text == plaintext
