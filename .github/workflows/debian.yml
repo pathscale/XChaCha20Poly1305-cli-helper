@@ -22,17 +22,35 @@ jobs:
     - name: Ubuntu version 
       run: lsb_release -a
 
+    - name: Cache Cargo registry
+      uses: buildjet/cache@v3
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
+
+    - name: Cache Cargo index
+      uses: buildjet/cache@v3
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-index-
+
+    - name: Cache target directory
+      uses: buildjet/cache@v3
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-target-
+
     - name: rustfmt
       run: rustup component add rustfmt
 
     - name: Install cargo-deb
       run: cargo install cargo-deb --no-default-features
-    
-    - name: Cache cargo build
-      uses: Swatinem/rust-cache@v2
-      with:
-        cache-on-failure: false 
-        cache-all-crates: true
 
     - name: Build Rust project
       env:
