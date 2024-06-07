@@ -43,7 +43,7 @@ jobs:
         done
 
     - name: Create Debian package
-      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly --deb-name chacha_poly_1.0.$GITHUB_RUN_NUMBER_arm64.deb
+      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly -o chacha_poly_1.0.$GITHUB_RUN_NUMBER_arm64.deb
       
     - name: List Deb files
       run: | 
@@ -97,7 +97,7 @@ jobs:
         done
 
     - name: Create Debian package
-      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly --deb-name chacha_poly_1.0.$GITHUB_RUN_NUMBER_amd64.deb
+      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly -o chacha_poly_1.0.$GITHUB_RUN_NUMBER_amd64.deb
       
     - name: List deb files
       run: | 
