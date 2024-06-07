@@ -1,4 +1,4 @@
-name: Build Package (ARM64 and x86)
+name: Build Package (ARM64 and AMD64)
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build_arm:
+  build_arm64:
     runs-on: buildjet-4vcpu-ubuntu-2204-arm
 
     steps:
@@ -43,7 +43,7 @@ jobs:
         done
 
     - name: Create Debian package
-      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly
+      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly --deb-name chacha_poly_1.0.$GITHUB_RUN_NUMBER_arm64.deb
       
     - name: List Deb files
       run: | 
@@ -60,7 +60,7 @@ jobs:
           curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./*.deb "https://storage.bunnycdn.com/$STORAGE_NAME/"
           curl -s --request POST --header "AccessKey: $ZONE_API_KEY" --header "Content-Type: application/json" --header "Accept: application/json" "https://bunnycdn.com/api/pullzone/$ZONE_ID/purgeCache" --data "{"id":"$ZONE_ID"}"
   
-  build_x86:
+  build_amd64:
     runs-on: buildjet-4vcpu-ubuntu-2204
 
     steps:
@@ -97,7 +97,7 @@ jobs:
         done
 
     - name: Create Debian package
-      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly
+      run: cargo deb --no-build --deb-version 1.0.$GITHUB_RUN_NUMBER --no-strip -p chacha_poly --deb-name chacha_poly_1.0.$GITHUB_RUN_NUMBER_amd64.deb
       
     - name: List deb files
       run: | 
