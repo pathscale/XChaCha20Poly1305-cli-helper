@@ -109,10 +109,12 @@
 // assert_eq!(hash1, hash2); //Make sure hash1 == hash2
 // ```
 
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use base64::Engine;
 use chacha_poly::{
-    add_key, choose_hashing_function, create_new_keyfile, decrypt_file_procedual,
+    add_key, choose_hashing_function, create_new_keyfile, decrypt_file_procedual, encrypt_chacha,
     encrypt_file_procedual, get_input_string, parse_key, read_file_as_vec_u8,
-    read_keyfile_interactive, remove_key,
+    read_keyfile_interactive, remove_key, save_file,
 };
 use clap::Parser;
 use std::path::{Path, PathBuf};
@@ -150,7 +152,7 @@ fn main() -> eyre::Result<()> {
         // direct encrypt mode
         (Some(input_file), output_file_opt, enc_key_file_opt) => {
             // gather file dir
-            let default_output_file = PathBuf::from(format!("{:?}.crpt", input_file.display()));
+            let default_output_file = PathBuf::from(format!("{}.crpt", input_file.display()));
             let default_enc_key_file = PathBuf::from_str("key.file")?;
             let output_file = output_file_opt.unwrap_or(default_output_file);
             let enc_key_file = enc_key_file_opt.unwrap_or(default_enc_key_file);
@@ -172,6 +174,9 @@ fn main() -> eyre::Result<()> {
             println!("encryption key: {enc_key:?}");
 
             // encrypt the input file into output file
+            let encrypted = encrypt_chacha(&input_plaintext, &enc_key)?;
+            let encrypted = BASE64_STANDARD.encode(encrypted);
+            save_file(encrypted.into_bytes(), &output_file)?;
         }
         // no input, invalid
         (None, _, _) => println!("please provide input"),
