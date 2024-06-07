@@ -125,17 +125,19 @@ use std::str::FromStr;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// First parameter description
+    /// Input file to be encrypted
     #[arg(short, long, alias = "input")]
     input_file: Option<PathBuf>,
-    /// Second parameter description
+    /// Output file to be generated [default: input_file.crpt]
     #[arg(short, long, alias = "output")]
     output_file: Option<PathBuf>,
-    /// Optional flag
+    /// Encryption key file that stores key for encryption [default: key.file]
     #[arg(short, long, alias = "enc")]
     enc_key_file: Option<PathBuf>,
+    /// Password to open the encryption key file
     #[arg(short, long, alias = "pw", default_value = "password")]
     password: String,
+    /// Key name within keyfile (each encryption key can have multiple keys)
     #[arg(short, long, default_value = "keyname")]
     keyname: String,
 }
