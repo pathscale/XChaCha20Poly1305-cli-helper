@@ -31,10 +31,10 @@ generated new encryption key: "aiERpT0nehFdxH9n0ZXC0QTpkuY5KFXc" in key.file
 ```
 it will generate `hyper.key.crpt` which has the encrypted material
 
-### paramters
--i: input
-- output
-- enc key file directory
+##### More details 
+```
+chacha-poly-cli -h
+```
 
 
 
