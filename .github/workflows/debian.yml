@@ -74,7 +74,6 @@ jobs:
           ZONE_ID: ${{ secrets.BUNNYCDN_DEV_ZONE_ID }}
           STORAGE_NAME: ${{ secrets.BUNNYCDN_STORAGE_NAME }}
       run: | 
-          cd target/debian
           curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./target/debian/chacha_poly_1.0.${{ github.run_number }}_arm64.deb "https://storage.bunnycdn.com/$STORAGE_NAME/"
           curl -s --request POST --header "AccessKey: $ZONE_API_KEY" --header "Content-Type: application/json" --header "Accept: application/json" "https://bunnycdn.com/api/pullzone/$ZONE_ID/purgeCache" --data "{"id":"$ZONE_ID"}"
   
@@ -146,6 +145,5 @@ jobs:
           ZONE_ID: ${{ secrets.BUNNYCDN_DEV_ZONE_ID }}
           STORAGE_NAME: ${{ secrets.BUNNYCDN_STORAGE_NAME }}
       run: | 
-          cd target/debian
           curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./target/debian/chacha_poly_1.0.${{ github.run_number }}_amd64.deb "https://storage.bunnycdn.com/$STORAGE_NAME/"
           curl -s --request POST --header "AccessKey: $ZONE_API_KEY" --header "Content-Type: application/json" --header "Accept: application/json" "https://bunnycdn.com/api/pullzone/$ZONE_ID/purgeCache" --data "{"id":"$ZONE_ID"}"
