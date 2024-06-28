@@ -29,9 +29,9 @@ nano hyper.key
 run with input file, enc, and password parameters
 
 ```
-chacha-poly-cli -i hyper.key
-chacha_poly_cli --input hyper.key --enc key.file --pw password
-
+chacha_poly_cli --input hyper.key --enc key.file
+Please enter the password
+password
 ```
 
 (for first) run it will generate a key.file and print the encryption key
