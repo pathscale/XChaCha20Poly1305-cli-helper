@@ -18,7 +18,7 @@
 //! # Examples
 //!
 //! ```
-//! use chacha_poly::{encrypt_chacha, decrypt_chacha, read_file_as_vec_u8};
+//! use chacha_poly::{encrypt_chacha, decrypt_chacha};
 //!
 //! //Plaintext to encrypt
 //! let text = b"This a test";
@@ -29,7 +29,7 @@
 //!
 //! //Encrypt text
 //! //Ciphertext stores the len() of encrypted content, the nonce and the actual ciphertext using bincode
-//! let ciphertext = encrypt_chacha(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
+//! let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
 //! //let ciphertext = encrypt_chacha(read_file_as_vec_u8(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
 //! //Check that plaintext != ciphertext
 //! assert_ne!(&ciphertext, &text);
@@ -141,7 +141,7 @@ pub struct Cipher {
 /// // encrypt_chacha takes plaintext as Vec<u8>. Text needs to be transformed into vector
 /// let text_vec = text.to_vec();
 ///
-/// let ciphertext = encrypt_chacha(text, &key).unwrap();
+/// let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap();
 /// assert_ne!(&ciphertext, &text);
 ///
 /// let plaintext = decrypt_chacha(&ciphertext, key).unwrap();
@@ -445,23 +445,6 @@ pub fn get_sha3_512_hash(data: Vec<u8>) -> eyre::Result<String> {
     Ok(format!("{:?}", hash))
 }
 
-#[cfg(test)]
-mod test_interim {
-    use base64::prelude::BASE64_STANDARD;
-    use base64::Engine;
-    use std::fs;
-
-    use super::*;
-    #[test]
-    fn store_base_64() {
-        let store = "hello world";
-        let decoded: String = BASE64_STANDARD.encode(store);
-        let path = Path::new("text");
-        let data = decoded.into();
-        let _ = fs::write(&path, data);
-    }
-}
-
 /// Creates a new keyfile. User can choose to create a random key or manually enter 32-long char-utf8 password in a keyfile. Key has to be valid utf8. Resturns result (password, keyfile and bool (true if new keyfile way created)).
 pub fn create_new_keyfile(path: &Path, password: String) -> eyre::Result<String> {
     let mut file = File::create(path)?;
@@ -577,11 +560,11 @@ mod tests {
                 .take(32)
                 .collect();
             let content: Vec<u8> = (0..100).map(|_| rng.sample(&range)).collect();
-            let ciphertext1 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext2 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext3 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext4 = encrypt_chacha(&content, &key).unwrap();
-            let ciphertext5 = encrypt_chacha(&content, &key).unwrap();
+            let ciphertext1 = encrypt_chacha(&content, key.as_bytes()).unwrap();
+            let ciphertext2 = encrypt_chacha(&content, key.as_bytes()).unwrap();
+            let ciphertext3 = encrypt_chacha(&content, key.as_bytes()).unwrap();
+            let ciphertext4 = encrypt_chacha(&content, key.as_bytes()).unwrap();
+            let ciphertext5 = encrypt_chacha(&content, key.as_bytes()).unwrap();
             assert_ne!(&ciphertext1, &ciphertext2);
             assert_ne!(&ciphertext1, &ciphertext3);
             assert_ne!(&ciphertext1, &ciphertext4);
@@ -746,7 +729,7 @@ mod tests {
                 .collect();
 
             let content: Vec<u8> = (0..100).map(|_| rng.sample(&range)).collect();
-            let ciphertext = encrypt_chacha(&content, &key).unwrap();
+            let ciphertext = encrypt_chacha(&content, key.as_bytes()).unwrap();
             assert_ne!(&ciphertext, &content);
             let plaintext = decrypt_chacha(&ciphertext, &key).unwrap();
             assert_eq!(format!("{:?}", content), format!("{:?}", plaintext));
@@ -781,8 +764,8 @@ mod tests {
     fn test_example() {
         let text = b"This a test"; //Text to encrypt
         let key: &str = "an example very very secret key."; //Key will normally be chosen from keymap and provided to the encrypt_chacha() function
-        let ciphertext = encrypt_chacha(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
-                                                             //let ciphertext = encrypt_chacha(read_file_as_vec_u8(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
+        let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
+                                                                        //let ciphertext = encrypt_chacha(read_file_as_vec_u8(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
         assert_ne!(&ciphertext, &text); //Check that plaintext != ciphertext
         let plaintext = decrypt_chacha(&ciphertext, key).unwrap(); //Decrypt ciphertext to plaintext
         assert_eq!(format!("{:?}", text), format!("{:?}", plaintext)); //Check that text == plaintext
@@ -793,7 +776,7 @@ mod tests {
     fn test_chacha_wrong_key_panic() {
         let text = b"This a another test"; //Text to encrypt
         let key: &str = "an example very very secret key."; //Key will normally be chosen from keymap and provided to the encrypt_chacha() function
-        let ciphertext = encrypt_chacha(text, key).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
+        let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
 
         assert_ne!(&ciphertext, &text); //Check that plaintext != ciphertext
         let key: &str = "an example very very secret key!"; //The ! should result in decryption panic
