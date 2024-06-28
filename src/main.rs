@@ -109,17 +109,14 @@
 // assert_eq!(hash1, hash2); //Make sure hash1 == hash2
 // ```
 
+use std::fs;
+use std::path::PathBuf;
+
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine;
-use chacha_poly::{
-    add_key, choose_hashing_function, create_new_keyfile, create_new_keyfile_interactive,
-    decrypt_file_procedual, encrypt_chacha, encrypt_file_procedual, get_input_string, parse_key,
-    read_file_as_vec_u8, read_keyfile_interactive, remove_key, save_file,
-};
 use clap::Parser;
-use std::path::{Path, PathBuf};
-use std::process::exit;
-use std::str::FromStr;
+
+use chacha_poly::{create_new_keyfile, encrypt_chacha, parse_key};
 
 /// Program description goes here
 #[derive(Parser, Debug)]
@@ -127,125 +124,50 @@ use std::str::FromStr;
 struct Args {
     /// Input file to be encrypted
     #[arg(short, long, alias = "input")]
-    input_file: Option<PathBuf>,
+    input_file: PathBuf,
     /// Output file to be generated [default: input_file.crpt]
     #[arg(short, long, alias = "output")]
     output_file: Option<PathBuf>,
     /// Encryption key file that stores key for encryption [default: key.file]
     #[arg(short, long, alias = "enc")]
-    enc_key_file: Option<PathBuf>,
+    enc_key_file: PathBuf,
     /// Password to open the encryption key file
     #[arg(short, long, alias = "pw", default_value = "password")]
     password: String,
-    /// Key name within keyfile (each encryption key can have multiple keys)
-    #[arg(short, long, default_value = "keyname")]
-    keyname: String,
 }
 
 fn main() -> eyre::Result<()> {
     let args = Args::parse();
-    match (args.input_file, args.output_file, args.enc_key_file) {
-        // interactive mode
-        (None, None, None) => loop {
-            if let Err(e) = menu_selection() {
-                println!("error: {e}");
-            }
-        },
-        // direct encrypt mode
-        (Some(input_file), output_file_opt, enc_key_file_opt) => {
-            // gather file dir
-            let default_output_file = PathBuf::from(format!("{}.crpt", input_file.display()));
-            let default_enc_key_file = PathBuf::from_str("key.file")?;
-            let output_file = output_file_opt.unwrap_or(default_output_file);
-            let enc_key_file = enc_key_file_opt.unwrap_or(default_enc_key_file);
-            // get input and key
-            let Ok(input_plaintext) = read_file_as_vec_u8(&input_file) else {
-                eyre::bail!("failed reading input file");
-            };
-            let enc_key = match read_file_as_vec_u8(&enc_key_file) {
-                Ok(keyfile_plaintext) => {
-                    parse_key(keyfile_plaintext, args.password.clone(), args.keyname)?
-                }
-                // generate new key
-                Err(_) => {
-                    println!("could not open {}", enc_key_file.display());
-                    create_new_keyfile(args.keyname.clone(), args.password.clone(), &enc_key_file)?;
-                    let keyfile_text = read_file_as_vec_u8(&enc_key_file)?;
-                    let new_enc_key = parse_key(keyfile_text, args.password.clone(), args.keyname)?;
-                    println!(
-                        "generated new encryption key: {new_enc_key:?} in {}",
-                        enc_key_file.display()
-                    );
-                    new_enc_key
-                }
-            };
-            // encrypt the input file into output file
-            let encrypted = encrypt_chacha(&input_plaintext, &enc_key)?;
-            let encrypted = BASE64_STANDARD.encode(encrypted);
-            save_file(encrypted.into_bytes(), &output_file)?;
-        }
-        // no input, invalid
-        (None, _, _) => println!("please provide input"),
-    };
-    Ok(())
-}
+    let enc_key_file = args.enc_key_file;
+    let input_file = args.input_file;
+    // gather file dir
+    let default_output_file = PathBuf::from(format!("{}.crpt", input_file.display()));
+    let output_file = args.output_file.unwrap_or(default_output_file);
 
-fn menu_selection() -> eyre::Result<()> {
-    println!(
-        "Please enter the corresponding number to continue:\n\
-        1 Add new key\n\
-        2 Remove key\n\
-        3 Encrypt file using XChaCha20Poly1305\n\
-        4 Decrypt file using XChaCha20Poly1305\n\
-        5 Encrypt file using AES-256-GCM-SIV\n\
-        6 Decrypt file using AES-256-GCM-SIV\n\
-        7 Calculate Hash\n\
-        8 Exit program"
-    );
-    //Getting user input
-    let answer = get_input_string().expect("error");
-    // Creating a Vec with choices needing a password to compare to user input
-    let requiring_pw = vec![
-        "1".to_string(),
-        "2".to_string(),
-        "3".to_string(),
-        "4".to_string(),
-        "5".to_string(),
-        "6".to_string(),
-    ];
-    //check if the operation needs access to the keymap, requiring a password. Hashing can be done without a password.
-    if requiring_pw.contains(&answer) {
-        //All functions in this if-block require a password
-        //Check if there is a key.file in the directory
-        let (password, keymap_plaintext, new) = if !Path::new("./key.file").exists() {
-            //No key.file found. Ask if a new one should be created.
-            create_new_keyfile_interactive().expect("error")
-        } else {
-            //key.file found. Reading and decrypting content
-            read_keyfile_interactive().expect("error")
-        };
-        match answer.as_str() {
-            "1" => {
-                if !new {
-                    return Ok(());
-                }
-                add_key(keymap_plaintext, password)
-            }
-            "2" => remove_key(keymap_plaintext, password),
-            "3" => encrypt_file_procedual(keymap_plaintext, "chacha"),
-            "4" => decrypt_file_procedual(keymap_plaintext, "chacha"),
-            "5" => encrypt_file_procedual(keymap_plaintext, "aes"),
-            "6" => decrypt_file_procedual(keymap_plaintext, "aes"),
-            _ => Ok(()),
+    // get input and key
+    let Ok(input_plaintext) = fs::read(&input_file) else {
+        eyre::bail!("failed reading input file");
+    };
+    let secret_key = match fs::read(&enc_key_file) {
+        Ok(encoded) => parse_key(encoded, args.password.clone())?,
+        // generate new key
+        Err(_) => {
+            println!("could not open {}", enc_key_file.display());
+            let key = create_new_keyfile(args.password.clone(), &enc_key_file)?;
+            println!(
+                "generated new encryption key: {} in {}",
+                key,
+                enc_key_file.display()
+            );
+            key.into_bytes()
         }
-    } else {
-        match answer.as_str() {
-            "7" => choose_hashing_function(),
-            "8" => {
-                println!("exiting program");
-                exit(0);
-            }
-            _ => Ok(()),
-        }
-    }
+    };
+    // encrypt the input file into output file
+    let encrypted = encrypt_chacha(&input_plaintext, &secret_key)?;
+    let encrypted = BASE64_STANDARD.encode(encrypted);
+    fs::write(&output_file, &encrypted)?;
+    println!("saved to file: {}", output_file.display());
+    println!("{}", encrypted);
+
+    Ok(())
 }
