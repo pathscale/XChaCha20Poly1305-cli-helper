@@ -463,7 +463,7 @@ mod test_interim {
 }
 
 /// Creates a new keyfile. User can choose to create a random key or manually enter 32-long char-utf8 password in a keyfile. Key has to be valid utf8. Resturns result (password, keyfile and bool (true if new keyfile way created)).
-pub fn create_new_keyfile(password: String, path: &Path) -> eyre::Result<String> {
+pub fn create_new_keyfile(path: &Path, password: String) -> eyre::Result<String> {
     let mut file = File::create(path)?;
     // create random key
 

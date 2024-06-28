@@ -110,11 +110,13 @@
 // ```
 
 use std::fs;
+use std::io::stdin;
 use std::path::PathBuf;
 
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine;
 use clap::Parser;
+use eyre::ContextCompat;
 
 use chacha_poly::{create_new_keyfile, encrypt_chacha, parse_key};
 
@@ -123,37 +125,41 @@ use chacha_poly::{create_new_keyfile, encrypt_chacha, parse_key};
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Input file to be encrypted
-    #[arg(short, long, alias = "input")]
-    input_file: PathBuf,
+    #[arg(short, long)]
+    input: PathBuf,
     /// Output file to be generated [default: input_file.crpt]
-    #[arg(short, long, alias = "output")]
-    output_file: Option<PathBuf>,
+    #[arg(short, long)]
+    output: Option<PathBuf>,
     /// Encryption key file that stores key for encryption [default: key.file]
-    #[arg(short, long, alias = "enc")]
-    enc_key_file: PathBuf,
-    /// Password to open the encryption key file
-    #[arg(short, long, alias = "pw", default_value = "password")]
-    password: String,
+    #[arg(short, long)]
+    enc: PathBuf,
 }
 
 fn main() -> eyre::Result<()> {
     let args = Args::parse();
-    let enc_key_file = args.enc_key_file;
-    let input_file = args.input_file;
+    let enc_key_file = args.enc;
+    let input_file = args.input;
+    println!("Enter password: ");
+    // TODO: use rpassword to hide password input
+    let password = stdin()
+        .lines()
+        .next()
+        .transpose()?
+        .with_context(|| "failed reading password")?;
     // gather file dir
     let default_output_file = PathBuf::from(format!("{}.crpt", input_file.display()));
-    let output_file = args.output_file.unwrap_or(default_output_file);
+    let output_file = args.output.unwrap_or(default_output_file);
 
     // get input and key
     let Ok(input_plaintext) = fs::read(&input_file) else {
         eyre::bail!("failed reading input file");
     };
     let secret_key = match fs::read(&enc_key_file) {
-        Ok(encoded) => parse_key(encoded, args.password.clone())?,
+        Ok(encoded) => parse_key(encoded, password.clone())?,
         // generate new key
         Err(_) => {
             println!("could not open {}", enc_key_file.display());
-            let key = create_new_keyfile(args.password.clone(), &enc_key_file)?;
+            let key = create_new_keyfile(&enc_key_file, password.clone())?;
             println!(
                 "generated new encryption key: {} in {}",
                 key,
@@ -166,7 +172,11 @@ fn main() -> eyre::Result<()> {
     let encrypted = encrypt_chacha(&input_plaintext, &secret_key)?;
     let encrypted = BASE64_STANDARD.encode(encrypted);
     fs::write(&output_file, &encrypted)?;
-    println!("saved to file: {}", output_file.display());
+    println!(
+        "saved {} to file: {}",
+        input_file.display(),
+        output_file.display()
+    );
     println!("{}", encrypted);
 
     Ok(())
