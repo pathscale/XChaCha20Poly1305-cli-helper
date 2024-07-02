@@ -49,29 +49,6 @@ it will generate `hyper.key.crpt` which has the encrypted material
 chacha-poly-cli -h
 ```
 
-##### Install the debian package
-
-start the program
-
-```
-sudo dpkg -i chacha-poly_1.0.0_arm64.deb
-```
-
-select 1: create encryption key, it prints the `encryption key` as below
-
-```
-Keys found in key.file:
-{"YOUR_KEY_NAME_HERE": "YOUR_ENCRYPTION_KEY_HERE"}
-```
-
-select 3: encrypt `hyper.key` (wallet private key) and get `hyper.key.crpt` with encrypted material in the content
-
-```
-nano hyper.key.crpt 
-```
-
-select 8: exit
-
 ### Details
 
 package name: chacha-poly
