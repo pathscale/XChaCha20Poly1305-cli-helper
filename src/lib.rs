@@ -35,7 +35,7 @@
 //! assert_ne!(&ciphertext, &text);
 //!
 //! //Decrypt ciphertext to plaintext
-//! let plaintext = decrypt_chacha(&ciphertext, key).unwrap();
+//! let plaintext = decrypt_chacha(&ciphertext, key.as_bytes()).unwrap();
 //! //Check that text == plaintext
 //! assert_eq!(format!("{:?}", text), format!("{:?}", plaintext));
 //! ```
@@ -142,7 +142,7 @@ pub struct Cipher {
 /// let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap();
 /// assert_ne!(&ciphertext, &text);
 ///
-/// let plaintext = decrypt_chacha(&ciphertext, key).unwrap();
+/// let plaintext = decrypt_chacha(&ciphertext, key.as_bytes()).unwrap();
 /// assert_eq!(format!("{:?}", text), format!("{:?}", plaintext));
 /// ```
 pub fn encrypt_chacha(cleartext: &[u8], secret_key: &[u8]) -> eyre::Result<Vec<u8>> {
@@ -184,7 +184,7 @@ pub fn encrypt_chacha(cleartext: &[u8], secret_key: &[u8]) -> eyre::Result<Vec<u
 /// let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap();
 /// assert_ne!(&ciphertext, &text);
 ///
-/// let plaintext = decrypt_chacha(&ciphertext, key).unwrap();
+/// let plaintext = decrypt_chacha(&ciphertext, key.as_bytes()).unwrap();
 /// assert_eq!(format!("{:?}", text), format!("{:?}", plaintext));
 /// ```
 pub fn decrypt_chacha(enc: &[u8], key: &[u8]) -> eyre::Result<Vec<u8>> {
@@ -478,7 +478,7 @@ mod tests {
         let key: &str = "an example very very secret key.";
         let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap();
         assert_ne!(&ciphertext, &text);
-        let plaintext = decrypt_chacha(&ciphertext, key).unwrap();
+        let plaintext = decrypt_chacha(&ciphertext, key.as_bytes()).unwrap();
         assert_eq!(format!("{:?}", text), format!("{:?}", plaintext));
     }
 
@@ -667,7 +667,7 @@ mod tests {
             let content: Vec<u8> = (0..100).map(|_| rng.sample(&range)).collect();
             let ciphertext = encrypt_chacha(&content, key.as_bytes()).unwrap();
             assert_ne!(&ciphertext, &content);
-            let plaintext = decrypt_chacha(&ciphertext, &key).unwrap();
+            let plaintext = decrypt_chacha(&ciphertext, key.as_bytes()).unwrap();
             assert_eq!(format!("{:?}", content), format!("{:?}", plaintext));
 
             i += 1;
@@ -703,7 +703,7 @@ mod tests {
         let ciphertext = encrypt_chacha(text, key.as_bytes()).unwrap(); //encrypt vec<u8>, returns result(Vec<u8>)
                                                                         //let ciphertext = encrypt_chacha(read_file_as_vec_u8(example.file).unwrap(), key).unwrap(); //read a file as Vec<u8> and then encrypt
         assert_ne!(&ciphertext, &text); //Check that plaintext != ciphertext
-        let plaintext = decrypt_chacha(&ciphertext, key).unwrap(); //Decrypt ciphertext to plaintext
+        let plaintext = decrypt_chacha(&ciphertext, key.as_bytes()).unwrap(); //Decrypt ciphertext to plaintext
         assert_eq!(format!("{:?}", text), format!("{:?}", plaintext)); //Check that text == plaintext
     }
 
@@ -716,7 +716,8 @@ mod tests {
 
         assert_ne!(&ciphertext, &text); //Check that plaintext != ciphertext
         let key: &str = "an example very very secret key!"; //The ! should result in decryption panic
-        let _plaintext = decrypt_chacha(ciphertext.as_ref(), key).unwrap(); //Decrypt ciphertext to plaintext
+        let _plaintext = decrypt_chacha(ciphertext.as_ref(), key.as_bytes()).unwrap();
+        //Decrypt ciphertext to plaintext
     }
 
     #[test]
@@ -752,7 +753,7 @@ mod tests {
         let ciphertext = "FQAAAAAAAAAYAAAAAAAAAFY5WGZUaTZlUzNybXlLRndHcEdBbEZhWhUAAAAAAAAAh4qZ680wLAnkEdcmRDD0oS5V8FCa";
         let plain_actual = BASE64_STANDARD.decode(ciphertext).unwrap();
         println!("decoded: {plain_actual:?}");
-        let plain_actual = decrypt_chacha(&plain_actual, key).unwrap();
+        let plain_actual = decrypt_chacha(&plain_actual, key.as_bytes()).unwrap();
         assert_eq!(plain_expected.as_bytes(), plain_actual);
     }
 }
