@@ -108,15 +108,12 @@
 // assert_eq!(hash1, hash2); //Make sure hash1 == hash2
 // ```
 
-use std::fs::File;
 use std::io;
-use std::io::prelude::*;
 use std::iter;
-use std::path::Path;
 
 use aes_gcm_siv::aead::{Aead, KeyInit};
 use aes_gcm_siv::{Aes256GcmSiv, Nonce as AES_Nonce};
-use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
+use chacha20poly1305::{XChaCha20Poly1305, XNonce};
 use eyre::{bail, eyre};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -447,87 +444,23 @@ pub fn get_sha3_512_hash(data: Vec<u8>) -> eyre::Result<String> {
     let hash = hasher.finalize();
     Ok(format!("{:?}", hash))
 }
-
-/// Creates a new keyfile. User can choose to create a random key or manually enter 32-long char-utf8 password in a keyfile. Key has to be valid utf8. Resturns result (password, keyfile and bool (true if new keyfile way created)).
-pub fn create_new_keyfile(path: &Path, password: String) -> eyre::Result<String> {
-    let mut file = File::create(path)?;
-    // create random key
-
+pub const PASSWORD_LEN: usize = 32;
+pub fn gen_rand_password() -> String {
     let mut rng = thread_rng();
     let key_rand: String = iter::repeat(())
         .map(|()| rng.sample(Alphanumeric))
         .map(char::from)
-        .take(32)
+        .take(PASSWORD_LEN)
         .collect();
-
-    let encoded: Vec<u8> = encrypt_text_with_password(key_rand.clone(), &password)?;
-    file.write_all(&encoded)?;
-    Ok(key_rand)
+    key_rand
 }
 
-pub fn chacha_key_from_password(password: String) -> XChaCha20Poly1305 {
-    let password = blake3::hash(password.trim().as_bytes());
-    let key = Key::from_slice(password.as_bytes());
-    XChaCha20Poly1305::new(key)
-}
-
-/// Read keyfile to keymap. Asks for userpassword. Returns result (password, keymap and bool(false as no new keymap was created))
-pub fn decrypt_keyfile(content: Vec<u8>, password: String) -> eyre::Result<Vec<u8>> {
-    // password -> aead
-    let aead = chacha_key_from_password(password.clone());
-    // key file -> cipher
-    let decoded: Cipher = bincode::deserialize(&content)?;
-    let (ciphertext, len_ciphertext, rand_string) =
-        (decoded.ciphertext, decoded.len, decoded.rand_string);
-    if ciphertext.len() != len_ciphertext {
-        panic!("length of received ciphertext not ok")
-    };
-    let nonce = XNonce::from_slice(rand_string.as_bytes());
-
-    let plaintext: Vec<u8> = aead
-        .decrypt(nonce, ciphertext.as_ref())
-        .expect("decryption failure!");
-
-    Ok(plaintext)
-}
-
-/// Read keyfile to keymap. Asks for userpassword. Returns result (password, keymap and bool(false as no new keymap was created))
-pub fn parse_key(key_file_content: Vec<u8>, password: String) -> eyre::Result<Vec<u8>> {
-    let key = decrypt_keyfile(key_file_content, password)?;
-    Ok(key)
-}
-
-pub fn encrypt_text_with_password(text: String, password: &str) -> eyre::Result<Vec<u8>> {
-    let encoded: Vec<u8> = text.into_bytes();
-
-    //encrypt Hashmap with keys
-    let mut rng = thread_rng();
-    let rand_string: String = iter::repeat(())
-        .map(|()| rng.sample(Alphanumeric))
-        .map(char::from)
-        .take(24)
-        .collect();
-    let nonce = XNonce::from_slice(rand_string.as_bytes());
-    let hashed_password = blake3::hash(password.trim().as_bytes());
-    let key = Key::from_slice(hashed_password.as_bytes());
-    let aead = XChaCha20Poly1305::new(key);
-    let ciphertext: Vec<u8> = aead
-        .encrypt(nonce, encoded.as_ref())
-        .expect("encryption failure!");
-    let ciphertext_to_send = Cipher {
-        len: ciphertext.len(),
-        rand_string,
-        ciphertext,
-    };
-    let encoded: Vec<u8> =
-        bincode::serialize(&ciphertext_to_send).expect("Unable to encode keymap!");
-    Ok(encoded)
-}
 #[cfg(test)]
 mod tests {
-    use super::*;
     use base64::prelude::BASE64_STANDARD;
     use base64::Engine;
+
+    use super::*;
 
     #[test]
     fn test_encryt_decrypt_aes() {
