@@ -118,7 +118,7 @@ use base64::Engine;
 use clap::Parser;
 use eyre::ContextCompat;
 
-use chacha_poly::{create_new_keyfile, encrypt_chacha, parse_key};
+use chacha_poly::{create_new_keyfile, decrypt_chacha, encrypt_chacha, parse_key};
 
 /// Program description goes here
 #[derive(Parser, Debug)]
@@ -139,7 +139,7 @@ fn main() -> eyre::Result<()> {
     let args = Args::parse();
     let enc_key_file = args.enc;
     let input_file = args.input;
-    println!("Enter password: ");
+    println!("Enter password to protect the passphrase: ");
     // TODO: use rpassword to hide password input
     let password = stdin()
         .lines()
@@ -170,14 +170,20 @@ fn main() -> eyre::Result<()> {
     };
     // encrypt the input file into output file
     let encrypted = encrypt_chacha(&input_plaintext, &secret_key)?;
-    let encrypted = BASE64_STANDARD.encode(encrypted);
-    fs::write(&output_file, &encrypted)?;
+    let encrypted_base64 = BASE64_STANDARD.encode(&encrypted);
+    fs::write(&output_file, &encrypted_base64)?;
     println!(
-        "saved {} to file: {}",
+        "saved {} to file: {}(original size: {}, base64 size: {})",
         input_file.display(),
-        output_file.display()
+        output_file.display(),
+        encrypted.len(),
+        encrypted_base64.len()
     );
-    println!("{}", encrypted);
+    println!("encrypted BASE64: {}", encrypted_base64);
+    let secret_key = String::from_utf8(secret_key).unwrap();
+    println!("decrypting {} bytes with: {}", encrypted.len(), secret_key);
+    let decrypted = decrypt_chacha(encrypted.as_ref(), secret_key.as_bytes())?;
+    println!("decrypted: {}", String::from_utf8_lossy(&decrypted));
 
     Ok(())
 }

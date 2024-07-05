@@ -117,6 +117,7 @@ use std::path::Path;
 use aes_gcm_siv::aead::{Aead, KeyInit};
 use aes_gcm_siv::{Aes256GcmSiv, Nonce as AES_Nonce};
 use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
+use eyre::{bail, eyre};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
@@ -157,7 +158,9 @@ pub fn encrypt_chacha(cleartext: &[u8], secret_key: &[u8]) -> eyre::Result<Vec<u
         .take(24)
         .collect();
     let nonce = XNonce::from_slice(rand_string.as_bytes());
-    let ciphertext: Vec<u8> = aead.encrypt(nonce, cleartext).expect("encryption failure!");
+    let ciphertext: Vec<u8> = aead
+        .encrypt(nonce, cleartext)
+        .map_err(|_| eyre!("encryption failure!"))?;
     //ciphertext_to_send includes the length of the ciphertext (to confirm upon decryption), the nonce (needed to decrypt) and the actual ciphertext
     let ciphertext_to_send = Cipher {
         len: ciphertext.len(),
@@ -187,8 +190,8 @@ pub fn encrypt_chacha(cleartext: &[u8], secret_key: &[u8]) -> eyre::Result<Vec<u
 /// let plaintext = decrypt_chacha(&ciphertext, key).unwrap();
 /// assert_eq!(format!("{:?}", text), format!("{:?}", plaintext));
 /// ```
-pub fn decrypt_chacha(enc: &[u8], key: &str) -> eyre::Result<Vec<u8>> {
-    let aead = XChaCha20Poly1305::new_from_slice(key.as_bytes())?;
+pub fn decrypt_chacha(enc: &[u8], key: &[u8]) -> eyre::Result<Vec<u8>> {
+    let aead = XChaCha20Poly1305::new_from_slice(key)?;
 
     //deserialize input read from file
     let decoded: Cipher = bincode::deserialize(enc)?;
@@ -196,13 +199,13 @@ pub fn decrypt_chacha(enc: &[u8], key: &str) -> eyre::Result<Vec<u8>> {
         (decoded.ciphertext, decoded.len, decoded.rand_string);
     //check if included length of ciphertext == actual length of ciphertext
     if ciphertext2.len() != len_ciphertext {
-        panic!("length of received ciphertext not ok")
+        bail!("length of received ciphertext not ok")
     };
     let nonce = XNonce::from_slice(rand_string2.as_bytes());
     //decrypt to plaintext
     let plaintext: Vec<u8> = aead
         .decrypt(nonce, ciphertext2.as_ref())
-        .expect("decryption failure!");
+        .map_err(|_| eyre!("decryption failure!"))?;
     Ok(plaintext)
 }
 
