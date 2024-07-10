@@ -96,10 +96,12 @@ jobs:
       - name: Calculate checksum and rename binary
         shell: bash
         run: |
-          cd target/${{ matrix.arch }}/${{ env.CARGO_PROFILE }}
+          cd target/${{ matrix.arch }}/${{ env.CARGO_PROFILE }}          
           chmod +x chacha_poly_cli
-          tar -zcvf ${{ matrix.file }}.tgz chacha_poly_cli
-          echo $(shasum -a 256 ${{ matrix.file }}.tgz | cut -f1 -d' ') > ${{ matrix.file }}.sha256sum
+          escaped_version=$(echo ${{ env.VERSION }} | sed 's/\./_/g')          
+          mv chacha_poly_cli chacha_poly_cli_v$escaped_version
+          tar -zcvf ${{ matrix.file }}_${{ env.VERSION }}.tgz chacha_poly_cli_v$escaped_version
+          echo $(shasum -a 256 ${{ matrix.file }}_${{ env.VERSION }}.tgz | cut -f1 -d' ') > ${{ matrix.file }}_${{ env.VERSION }}.sha256sum
 
       - name: List files
         run: | 
@@ -113,5 +115,5 @@ jobs:
             STORAGE_NAME: ${{ secrets.BUNNYCDN_STORAGE_NAME }}
         shell: bash
         run: |
-          curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./target/${{ matrix.arch }}/${{ env.CARGO_PROFILE }}/${{ matrix.file }}.tgz "https://storage.bunnycdn.com/$STORAGE_NAME/"
+          curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./target/${{ matrix.arch }}/${{ env.CARGO_PROFILE }}/${{ matrix.file }}_${{ env.VERSION }}.tgz "https://storage.bunnycdn.com/$STORAGE_NAME/"
           curl -s --request POST --header "AccessKey: $ZONE_API_KEY" --header "Content-Type: application/json" --header "Accept: application/json" "https://bunnycdn.com/api/pullzone/$ZONE_ID/purgeCache" --data "{"id":"$ZONE_ID"}"
