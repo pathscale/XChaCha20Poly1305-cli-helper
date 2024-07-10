@@ -101,14 +101,17 @@ jobs:
           tar -zcvf ${{ matrix.file }}.tgz chacha_poly_cli
           echo $(shasum -a 256 ${{ matrix.file }}.tgz | cut -f1 -d' ') > ${{ matrix.file }}.sha256sum
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.file }}
-          path: target/${{ matrix.arch }}/${{ env.CARGO_PROFILE }}/${{ matrix.file }}.tgz
+      - name: List files
+        run: | 
+          find target/*/release/*.tgz
 
-      - name: Upload checksum of artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.file }}.sha256sum
-          path: target/${{ matrix.arch }}/${{ env.CARGO_PROFILE }}/${{ matrix.file }}.sha256sum
+      - name: Upload to bunny
+        env: 
+            STORAGE_API_KEY: ${{ secrets.BUNNYCDN_STORAGE_API_KEY }}
+            ZONE_API_KEY: ${{ secrets.BUNNYCDN_ZONE_API_KEY }}
+            ZONE_ID: ${{ secrets.BUNNYCDN_DEV_ZONE_ID }}
+            STORAGE_NAME: ${{ secrets.BUNNYCDN_STORAGE_NAME }}
+        shell: bash
+        run: |
+          curl -s --request PUT --header "AccessKey: $STORAGE_API_KEY" -T ./target/${{ matrix.arch }}/${{ env.CARGO_PROFILE }}/${{ matrix.file }}.tgz "https://storage.bunnycdn.com/$STORAGE_NAME/"
+          curl -s --request POST --header "AccessKey: $ZONE_API_KEY" --header "Content-Type: application/json" --header "Accept: application/json" "https://bunnycdn.com/api/pullzone/$ZONE_ID/purgeCache" --data "{"id":"$ZONE_ID"}"
