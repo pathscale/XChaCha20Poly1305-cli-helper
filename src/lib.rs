@@ -108,6 +108,9 @@
 // assert_eq!(hash1, hash2); //Make sure hash1 == hash2
 // ```
 
+#[cfg(target_os = "windows")]
+compile_error!("This crate is not supported on Windows");
+
 use std::io;
 use std::iter;
 

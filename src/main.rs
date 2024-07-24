@@ -116,7 +116,7 @@ use std::path::PathBuf;
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine;
 use clap::Parser;
-use eyre::ContextCompat;
+use eyre::{ensure, ContextCompat};
 
 use chacha_poly::{decrypt_chacha, encrypt_chacha, gen_rand_password, PASSWORD_LEN};
 
@@ -157,11 +157,17 @@ fn main() -> eyre::Result<()> {
     let output_file = args.output.unwrap_or(default_output_file);
 
     // get input and key
-    let Ok(input_plaintext) = fs::read(&input_file) else {
-        eyre::bail!("failed reading input file");
+    let input_plaintext = match fs::read_to_string(&input_file) {
+        Ok(input) => input,
+        Err(e) => {
+            eyre::bail!("failed reading input file: {}", e);
+        }
     };
+    let input_plaintext = input_plaintext.trim();
+    ensure!(input_plaintext.len() > 0, "input file is empty");
+
     // encrypt the input file into output file
-    let encrypted = encrypt_chacha(&input_plaintext, password.as_bytes())?;
+    let encrypted = encrypt_chacha(input_plaintext.as_bytes(), password.as_bytes())?;
     let encrypted_base64 = BASE64_STANDARD.encode(&encrypted);
     fs::write(&output_file, &encrypted_base64)?;
     println!(
