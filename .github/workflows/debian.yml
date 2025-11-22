@@ -3,7 +3,7 @@ name: Build Package (ARM64 and AMD64)
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build_arm64:
