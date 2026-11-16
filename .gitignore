@@ -2,3 +2,4 @@ target
 key.file
 *.key
 *.crpt
+Cargo.lock
